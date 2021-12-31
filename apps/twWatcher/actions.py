@@ -15,7 +15,7 @@ settings = Settings()
 
 def get_driver():
     chrome_options = Options()
-    # chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--headless')
     # chrome_options.add_argument('--remote-debugging-port=9222')
     # chrome_options.add_argument('--remote-debugging-address=0.0.0.0')
     chrome_options.add_argument('--mute-audio')
