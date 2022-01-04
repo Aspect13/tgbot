@@ -3,12 +3,10 @@ from pathlib import Path
 from utils import Singleton
 
 
-class Settings(metaclass=Singleton):
-    root_path = Path(__file__).absolute().parent
 
-    @property
-    def cookie_file(self):
-        return self.root_path.joinpath(f'cookies_{self.username}.pkl'.lower())
+
+class AppSettings(metaclass=Singleton):
+    root_path = Path(__file__).absolute().parent
 
     def __init__(self):
         import json
