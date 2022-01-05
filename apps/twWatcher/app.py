@@ -14,25 +14,25 @@ dp = config.dp
 
 TMP_USER_ID = 123
 
-@dp.message_handler(commands=['driver'])
-async def handle_init_driver(message: types.Message):
-    # if driver:
-    #     return await message.answer('Driver already running. You may /close it')
-    await message.answer('Initializing driver...')
-    # try:
-    #     driver = get_driver()
-    #     # driver.get('https://www.twitch.tv/pestily')
-    #     # handle_login(driver)
-    # except Exception as e:
-    #
-    #     if 'verification' in str(e):
-    #         await message.answer(f'{str(e)}\nUse /vc + code')
-    #     else:
-    #         await message.answer(str(e))
-    #     return
-
-    Driver(TMP_USER_ID).bypass_mature_warning()
-    await message.answer(f'Driver init done')
+# @dp.message_handler(commands=['driver'])
+# async def handle_init_driver(message: types.Message):
+#     # if driver:
+#     #     return await message.answer('Driver already running. You may /close it')
+#     await message.answer('Initializing driver...')
+#     # try:
+#     #     driver = get_driver()
+#     #     # driver.get('https://www.twitch.tv/pestily')
+#     #     # handle_login(driver)
+#     # except Exception as e:
+#     #
+#     #     if 'verification' in str(e):
+#     #         await message.answer(f'{str(e)}\nUse /vc + code')
+#     #     else:
+#     #         await message.answer(str(e))
+#     #     return
+#
+#     Driver(TMP_USER_ID).bypass_mature_warning()
+#     await message.answer(f'Driver init done')
 
 
 @dp.message_handler(commands=['login'])

@@ -8,6 +8,8 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    expose:
+      - "15672"
 
   redis:
     image: redis:latest
@@ -22,12 +24,16 @@ services:
     depends_on:
       - rabbitmq
       - redis
+    links:
+      - rabbitmq
     environment:
       - BROKER_URL=amqp://$RABBIT_USER:$RABBIT_PASSWORD@rabbitmq
       - RESULT_BACKEND=redis://redis
+      - CELERY_RESULT_BACKEND=redis://redis
     working_dir: /app
     entrypoint: celery
     command: -A apps worker -l info
+    restart: on-failure
 
   celery_beat:
     build: .
@@ -37,12 +43,17 @@ services:
     depends_on:
       - rabbitmq
       - redis
+      - celery_worker
+    links:
+      - rabbitmq
     environment:
       - BROKER_URL=amqp://$RABBIT_USER:$RABBIT_PASSWORD@rabbitmq
       - RESULT_BACKEND=redis://redis
+      - CELERY_RESULT_BACKEND=redis://redis
     working_dir: /app
     entrypoint: celery
     command: -A apps beat
+    restart: on-failure
 
   flower:
 #    build: .
@@ -54,6 +65,8 @@ services:
     depends_on:
       - rabbitmq
       - redis
+      - celery_worker
+      - celery_beat
     ports:
       - "5555:5555"
     environment:
