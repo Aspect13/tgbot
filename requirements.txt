@@ -6,3 +6,6 @@ aiodns
 aiohttp[speedups]
 celery
 redis
+
+flower
+requests

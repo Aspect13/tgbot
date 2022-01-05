@@ -1,12 +1,13 @@
 version: "3"
 services:
   rabbitmq:
-    image: rabbitmq:latest
+    image: rabbitmq:management
     environment:
       - RABBITMQ_DEFAULT_USER=$RABBIT_USER
       - RABBITMQ_DEFAULT_PASS=$RABBIT_PASSWORD
     ports:
       - "5672:5672"
+      - "15672:15672"
 
   redis:
     image: redis:latest
@@ -14,9 +15,7 @@ services:
       - "6379:6379"
 
   celery_worker:
-    build:
-      context: .
-      dockerfile: celery_worker.dockerfile
+    build: .
     env_file: .env
     volumes:
       - ./:/app/
@@ -27,4 +26,41 @@ services:
       - BROKER_URL=amqp://$RABBIT_USER:$RABBIT_PASSWORD@rabbitmq
       - RESULT_BACKEND=redis://redis
     working_dir: /app
-    command: sh -c "celery -A apps worker -l info"
+    entrypoint: celery
+    command: -A apps worker -l info
+
+  celery_beat:
+    build: .
+    env_file: .env
+    volumes:
+      - ./:/app/
+    depends_on:
+      - rabbitmq
+      - redis
+    environment:
+      - BROKER_URL=amqp://$RABBIT_USER:$RABBIT_PASSWORD@rabbitmq
+      - RESULT_BACKEND=redis://redis
+    working_dir: /app
+    entrypoint: celery
+    command: -A apps beat
+
+  flower:
+#    build: .
+#    env_file: .env
+#    volumes:
+#      - ./:/app/
+#    working_dir: /app
+    image: mher/flower:latest
+    depends_on:
+      - rabbitmq
+      - redis
+    ports:
+      - "5555:5555"
+    environment:
+      - FLOWER_BROKER_API_URL=http://$RABBIT_USER:$RABBIT_PASSWORD@rabbitmq:15672/api/
+      - BROKER_API=http://$RABBIT_USER:$RABBIT_PASSWORD@rabbitmq:15672/api/
+      - CELERY_BROKER_URL=amqp://$RABBIT_USER:$RABBIT_PASSWORD@rabbitmq
+#      - FLOWER_PORT=5555
+#      - CELERY_BROKER_URL=pyamqp://$RABBIT_USER:$RABBIT_PASSWORD@rabbitmq
+#    entrypoint: celery
+#    command: -A apps flower

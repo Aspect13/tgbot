@@ -21,10 +21,12 @@ class Config(metaclass=Singleton):
     redis_url = "redis://localhost"
     celery = Celery('tasks', broker=broker_url, backend=redis_url,)
 
+
     def __init__(self):
         assert self.API_TOKEN, 'API TOKEN IS REQUIRED'
         self.bot = Bot(token=self.API_TOKEN)
         self.dp = Dispatcher(self.bot)
+        self.celery.conf.timezone = 'Europe/Moscow'
 
     def get_apps(self) -> Iterable[AppTG]:
         for i in self.APPS_DIR.iterdir():
