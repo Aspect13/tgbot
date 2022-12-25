@@ -10,7 +10,6 @@ from .utils import Driver
 from config import config
 
 dp = config.dp
-# settings = AppSettings()
 
 TMP_USER_ID = 123
 

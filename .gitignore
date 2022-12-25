@@ -2,6 +2,6 @@ venv
 .idea
 tmp
 secret
-.env
+*.local
 celerybeat-schedule
 chromedriver*

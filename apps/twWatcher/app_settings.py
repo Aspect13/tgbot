@@ -3,8 +3,6 @@ from pathlib import Path
 from utils import Singleton
 
 
-
-
 class AppSettings(metaclass=Singleton):
     root_path = Path(__file__).absolute().parent
 

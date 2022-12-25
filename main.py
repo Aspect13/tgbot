@@ -5,18 +5,8 @@ from aiogram import executor
 from config import config
 
 
-
-
-
-
-
-
-
-
 for app in config.get_apps():
     app.init()
-
-
 
 
 if __name__ == '__main__':

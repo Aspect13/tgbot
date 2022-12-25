@@ -10,21 +10,28 @@ from utils import Singleton, AppTG
 
 logging.basicConfig(level=logging.INFO)
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class Config(metaclass=Singleton):
-    API_TOKEN = os.getenv('API_TOKEN')
+    TG_API_TOKEN = os.getenv('TG_API_TOKEN')
+    RABBIT_USER = os.getenv('RABBIT_USER')
+    RABBIT_PASSWORD = os.getenv('RABBIT_PASSWORD')
+    RABBIT_URL = os.getenv('RABBIT_URL')
+    REDIS_URL = os.getenv('REDIS_URL')
 
     ROOT_DIR = Path(__file__).absolute().parent
     APPS_DIR = ROOT_DIR.joinpath('apps')
 
-    broker_url = "amqp://aspect:aspect@localhost"
-    redis_url = "redis://localhost"
+    broker_url = f'amqp://{RABBIT_USER}:{RABBIT_PASSWORD}@{RABBIT_URL}'
+    redis_url = f'redis://{REDIS_URL}'
     celery = Celery('tasks', broker=broker_url, backend=redis_url,)
 
-
     def __init__(self):
-        assert self.API_TOKEN, 'API TOKEN IS REQUIRED'
-        self.bot = Bot(token=self.API_TOKEN)
+        assert self.TG_API_TOKEN, 'TG_API_TOKEN IS REQUIRED'
+        self.bot = Bot(token=self.TG_API_TOKEN)
         self.dp = Dispatcher(self.bot)
         self.celery.conf.timezone = 'Europe/Moscow'
 
