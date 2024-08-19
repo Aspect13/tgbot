@@ -1,10 +1,18 @@
-from aiogram.filters import Command
 from aiogram.types import BotCommand
 
-cmd_login = Command(BotCommand(command="login", description="Login"))
-cmd_verification_code = Command(BotCommand(command="vc", description="cmd_verification_code"))
-cmd_goto = Command(BotCommand(command="goto", description="go to another page"))
-cmd_screenshot = Command(BotCommand(command="ss", description="make a screenshot of current page"))
-cmd_save_cookies = Command(BotCommand(command="save", description="save auth cookies"))
-cmd_close = Command(BotCommand(command="close", description="close browser"))
-cmd_driver = Command(BotCommand(command="driver", description="init browser driver"))
+from apps.helper.commander import register_command
+
+cmd_driver = BotCommand(command="driver", description="init browser driver")
+register_command(cmd_driver, group='twitcher')
+
+cmd_login = BotCommand(command="login", description="Login")
+register_command(cmd_login, group='twitcher')
+
+cmd_verification_code = BotCommand(command="vc", description="cmd_verification_code")
+register_command(cmd_verification_code, group='twitcher')
+
+cmd_save_cookies = BotCommand(command="save", description="save auth cookies")
+register_command(cmd_save_cookies, group='twitcher')
+
+cmd_watch = BotCommand(command="watch", description="go to twitch channel")
+register_command(cmd_watch, group='twitcher')

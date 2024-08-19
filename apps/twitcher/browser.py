@@ -2,50 +2,30 @@ import logging
 import pickle
 import weakref
 
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver import Chrome
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 
 from utils import Singleton
-from .app_settings import AppSettings
+from .settings import settings, cookies_path
+from ..browser.driver import Driver
 
 
-class Driver(metaclass=Singleton):
-    cookie_file = AppSettings().root_path.joinpath('cookies', f'{AppSettings().username}.pkl'.lower())
+class TwitchDriver(metaclass=Singleton):
+    cookie_file = cookies_path.joinpath(f'{settings.username}.pkl'.lower())
 
     def __getattr__(self, name: str):
         return getattr(self.driver, name)
 
-    @property
-    def chrome_options(self):
-        chrome_options = Options()
-        # chrome_options.add_argument('--headless')
-
-        # chrome_options.add_argument('--remote-debugging-port=9222')
-        # chrome_options.add_argument('--remote-debugging-address=0.0.0.0')
-
-        # chrome_options.add_argument('--no-sandbox')
-        # chrome_options.add_argument('--disable-dev-shm-usage')
-        chrome_options.add_argument('--mute-audio')
-        return chrome_options
-
     def __init__(self, user_id: int):
         # if self.__class__._instance = weakref.proxy(self)
-        logging.warning('DRIVER INIT')
+        logging.warning('Twitcher DRIVER INIT')
         self.user_id = user_id
 
-        self.driver = Chrome(options=self.chrome_options)
+        self.driver = Driver()
         self.load_cookies()
         self.driver.get('https://www.twitch.tv/')
-
-    def __del__(self):
-        try:
-            self.driver.quit()
-        finally:
-            self.driver = None
 
     def load_cookies(self):
         try:
@@ -56,7 +36,6 @@ class Driver(metaclass=Singleton):
             ...
 
     def handle_verification(self, verification_code: str = None):
-
         try:
             verification_inputs = WebDriverWait(self.driver, timeout=10).until(
                 lambda d: d.find_elements(
@@ -99,8 +78,8 @@ class Driver(metaclass=Singleton):
         login_input = WebDriverWait(self.driver, timeout=5).until(lambda d: d.find_element(By.ID, 'login-username'))
         password_input = WebDriverWait(self.driver, timeout=5).until(lambda d: d.find_element(By.ID, 'password-input'))
 
-        login_input.send_keys(AppSettings().username)
-        password_input.send_keys(AppSettings().password + Keys.RETURN)
+        login_input.send_keys(settings.username)
+        password_input.send_keys(settings.password + Keys.RETURN)
 
         try:
             captcha = WebDriverWait(self.driver, timeout=5).until(lambda d: d.find_element(By.ID, 'CaptchaFrame'))

@@ -1,6 +1,8 @@
-from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, BotCommand
+from aiogram.filters import CommandStart
+from aiogram.types import Message
 from aiogram import html, Router, Dispatcher
+
+from apps.helper.commander import command_registry
 
 
 def init(dp: Router | Dispatcher) -> None:
@@ -9,14 +11,18 @@ def init(dp: Router | Dispatcher) -> None:
         """
         This handler will be called when user sends `/start`
         """
-        await message.answer(f'''
-            Hi!, {html.bold(message.from_user.full_name)}
-            Available commands are:
-            /driver\t- init selenium driver
-            /login\t- do login
-            /vc\t-enter verification code
-            /goto\t- go to page
-            /ss\t- make screenshot
-            /save\t- save cookies
-            /close\t- de-init selenium driver
-        ''')
+
+        command_list = ''
+        for group in sorted(command_registry.keys()):
+            group_section = f'{html.bold(group)}:\n'
+            for cmd in sorted(command_registry[group], key=lambda x: x.command):
+                group_section += f'\t/{cmd.command}\t\t- {cmd.description}\n'
+            group_section += '\n\n'
+            if group is None:
+                command_list = group_section + command_list
+            else:
+                command_list += group_section
+
+        response = f'Hi, {html.bold(message.from_user.full_name)}\nAvailable commands are:\n\n'
+        response += command_list
+        await message.answer(response)
