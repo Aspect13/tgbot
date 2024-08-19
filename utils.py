@@ -20,7 +20,11 @@ class Singleton(type):
 
 
 async def install_requirements(requirements_path: Path):
-    pip_proc = await subprocess.create_subprocess_exec(sys.executable, '-m', 'pip', 'install', '-r', requirements_path)
+    pip_proc = await subprocess.create_subprocess_exec(
+        sys.executable,
+        '-m', 'pip', 'install', '-r', requirements_path,
+        '--disable-pip-version-check', '-q'
+    )
     await pip_proc.wait()
 
 
@@ -45,13 +49,14 @@ class BaseMixin(ABC):
         logging.info('Installing requirements for %s', self.name)
         await install_requirements(self.requirements)
 
-    def init(self):
-        logging.info('Initializing app [%s]', self.name)
+    async def init(self):
+        logging.info('Initializing app: [%s]', self.name)
         if self.requirements.exists():
-            asyncio.run(self.install_requirements())
+            # asyncio.run(self.install_requirements())
+            await self.install_requirements()
         logging.info('Importing [%s]', self.name)
         import_module('.app', package=self.package)
-        logging.info('Module initialized [%s]', self.name)
+        logging.info('Initializing done: [%s]', self.name)
 
 
 class TasksMixin(ABC):
@@ -73,64 +78,4 @@ class TasksMixin(ABC):
 
 class AppTG(BaseMixin, TasksMixin):
     ...
-
-
-# if __name__ == '__main__':
-#     print('start')
-#     # class B(dict, metaclass=ABCMeta):
-#     #     ...
-#     # class T1(B, metaclass=Singleton):
-#     #     def __init__(self, val):
-#     #         self.t = val
-#
-#
-#     # class Singleton2(object):
-#     #     _instances = {}
-#     #
-#     #     def __new__(cls, *args, **kwargs):
-#     #         if cls not in cls._instances:
-#     #             cls._instances[cls] = super().__new__(cls)
-#     #         return cls._instances[cls]
-#     class T2:
-#         _instance = None
-#         def __new__(cls, *args, **kwargs):
-#             print('NEW', args, kwargs, cls._instance)
-#             if not cls._instance:
-#                 print('creating...')
-#                 cls._instance = super().__new__(cls)
-#             print('created', cls._instance)
-#             return cls._instance
-#
-#         def __init__(self, val):
-#             print('INIT T', val)
-#             self.t = val
-#     class T:
-#         _instance = None
-#         def __call__(self, *args, **kwargs):
-#             print('calling', self._instance)
-#             if not self._instance:
-#                 self.__class__._instance = super().__call__(*args, **kwargs)
-#             return self._instance
-#
-#         def __init__(self, val):
-#             print('INIT T', val)
-#             self.t = val
-#
-#     q = T(123)
-#     w = T(345)
-#     print(q.t)
-#     print(w.t)
-#     print(T._instance)
-#     #
-#     # print(Singleton._instances.get(T))
-#
-#     # T.purge()
-#     #
-#     # w = T(345)
-#     # e = T(666)
-#     # print(q.t)
-#     # print(w.t)
-#     # print(e.t)
-
-
 

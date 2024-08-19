@@ -1,7 +1,6 @@
 aiogram
 uvloop
 ujson
-cchardet
 aiodns
 aiohttp[speedups]
 celery[redis]
@@ -9,3 +8,4 @@ redis
 
 flower
 requests
+pydantic-settings

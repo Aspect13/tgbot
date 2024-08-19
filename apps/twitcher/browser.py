@@ -1,7 +1,6 @@
 import logging
 import pickle
 import weakref
-from pathlib import Path
 
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver import Chrome
@@ -19,7 +18,6 @@ class Driver(metaclass=Singleton):
 
     def __getattr__(self, name: str):
         return getattr(self.driver, name)
-
 
     @property
     def chrome_options(self):
@@ -39,10 +37,9 @@ class Driver(metaclass=Singleton):
         logging.warning('DRIVER INIT')
         self.user_id = user_id
 
-
-        # super().__init__(options=chrome_options)
         self.driver = Chrome(options=self.chrome_options)
         self.load_cookies()
+        self.driver.get('https://www.twitch.tv/')
 
     def __del__(self):
         try:
@@ -53,7 +50,6 @@ class Driver(metaclass=Singleton):
     def load_cookies(self):
         try:
             cookies = pickle.load(open(self.cookie_file, 'rb'))
-            self.driver.get('https://www.twitch.tv/')
             for cookie in cookies:
                 self.driver.add_cookie(cookie)
         except FileNotFoundError:
@@ -131,5 +127,3 @@ class Driver(metaclass=Singleton):
                 print('mature_warning accepted')
         except TimeoutException:
             ...
-
-

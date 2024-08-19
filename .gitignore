@@ -5,3 +5,4 @@ secret
 *.local
 celerybeat-schedule
 chromedriver*
+.env*

@@ -1,14 +1,19 @@
 import asyncio
+import logging
 
-from aiogram import executor
+from config import get_apps
+from tg_bot import root_dispatcher, bot
 
-from config import config
 
+async def main() -> None:
+    for app in get_apps():
+        await app.init()
 
-for app in config.get_apps():
-    app.init()
+    await root_dispatcher.start_polling(bot)
 
 
 if __name__ == '__main__':
-    asyncio.set_event_loop(asyncio.new_event_loop())
-    executor.start_polling(config.dp, skip_updates=True)
+    # loop = asyncio.new_event_loop()
+    # asyncio.set_event_loop(loop)
+    # loop.run_until_complete(main())
+    asyncio.run(main())

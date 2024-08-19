@@ -1,20 +1,10 @@
-version: "3"
 services:
-  rabbitmq:
-    image: rabbitmq:management
-    environment:
-      - RABBITMQ_DEFAULT_USER=$RABBIT_USER
-      - RABBITMQ_DEFAULT_PASS=$RABBIT_PASSWORD
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    expose:
-      - "15672"
-
   redis:
     image: redis:latest
-    ports:
-      - "6379:6379"
+    #    ports:
+    #      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
   celery_worker:
     build: .
@@ -22,17 +12,14 @@ services:
     volumes:
       - ./:/app/
     depends_on:
-      - rabbitmq
       - redis
-    links:
-      - rabbitmq
     environment:
-      - BROKER_URL=amqp://$RABBIT_USER:$RABBIT_PASSWORD@rabbitmq
-      - RESULT_BACKEND=redis://redis
-      - CELERY_RESULT_BACKEND=redis://redis
+      - BROKER_URL=redis://redis/$celery_redis_db
+      - RESULT_BACKEND=redis://redis/$celery_redis_db
+      - CELERY_BROKER_URL=redis://redis/$celery_redis_db
+      - CELERY_RESULT_BACKEND=redis://redis/$celery_redis_db
     working_dir: /app
-    entrypoint: celery
-    command: -A apps worker -l info
+    command: celery -A celery_app worker -l info
     restart: on-failure
 
   celery_beat:
@@ -41,39 +28,46 @@ services:
     volumes:
       - ./:/app/
     depends_on:
-      - rabbitmq
       - redis
       - celery_worker
     links:
       - rabbitmq
     environment:
-      - BROKER_URL=amqp://$RABBIT_USER:$RABBIT_PASSWORD@rabbitmq
-      - RESULT_BACKEND=redis://redis
-      - CELERY_RESULT_BACKEND=redis://redis
+      - BROKER_URL=redis://redis/$celery_redis_db
+      - RESULT_BACKEND=redis://redis/$celery_redis_db
+      - CELERY_BROKER_URL=redis://redis/$celery_redis_db
+      - CELERY_RESULT_BACKEND=redis://redis/$celery_redis_db
     working_dir: /app
-    entrypoint: celery
-    command: -A apps beat
+    command: celery -A celery_app beat
     restart: on-failure
 
   flower:
-#    build: .
-#    env_file: .env
-#    volumes:
-#      - ./:/app/
-#    working_dir: /app
-    image: mher/flower:latest
-    depends_on:
-      - rabbitmq
-      - redis
-      - celery_worker
-      - celery_beat
-    ports:
-      - "5555:5555"
+    build: .
+    env_file: .env
+    volumes:
+      - ./:/app/
+    working_dir: /app
+    command: celery -A celery_app flower
     environment:
-      - FLOWER_BROKER_API_URL=http://$RABBIT_USER:$RABBIT_PASSWORD@rabbitmq:15672/api/
-      - BROKER_API=http://$RABBIT_USER:$RABBIT_PASSWORD@rabbitmq:15672/api/
-      - CELERY_BROKER_URL=amqp://$RABBIT_USER:$RABBIT_PASSWORD@rabbitmq
-#      - FLOWER_PORT=5555
-#      - CELERY_BROKER_URL=pyamqp://$RABBIT_USER:$RABBIT_PASSWORD@rabbitmq
-#    entrypoint: celery
-#    command: -A apps flower
+      - CELERY_BROKER_URL=redis://redis:6379/$celery_redis_db
+      - CELERY_RESULT_BACKEND=redis://redis:6379/$celery_redis_db
+    #    ports:
+    #      - "5555:5555"
+    depends_on:
+      - redis
+
+  tgbot:
+    build: .
+    env_file: .env
+    environment:
+      - redis_host=redis
+    volumes:
+      - ./:/app/
+    depends_on:
+      - redis
+    working_dir: /app
+    command: python main.py
+
+
+volumes:
+  redis_data:

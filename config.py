@@ -1,44 +1,72 @@
-import os
 import logging
-from pathlib import Path
-from typing import Iterable
+from operator import xor
+from typing import Iterator
 
-from aiogram import Bot, Dispatcher
-from celery import Celery
+from pydantic import Field, RedisDsn, model_validator, field_validator, computed_field
+from pydantic_core.core_schema import ValidationInfo
 
-from utils import Singleton, AppTG
+from utils import AppTG
 
 logging.basicConfig(level=logging.INFO)
 
-from dotenv import load_dotenv
+from pathlib import Path
+from typing import Optional
 
-load_dotenv()
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
-class Config(metaclass=Singleton):
-    TG_API_TOKEN = os.getenv('TG_API_TOKEN')
-    RABBIT_USER = os.getenv('RABBIT_USER')
-    RABBIT_PASSWORD = os.getenv('RABBIT_PASSWORD')
-    RABBIT_URL = os.getenv('RABBIT_URL')
-    REDIS_URL = os.getenv('REDIS_URL')
-
-    ROOT_DIR = Path(__file__).absolute().parent
-    APPS_DIR = ROOT_DIR.joinpath('apps')
-
-    broker_url = f'amqp://{RABBIT_USER}:{RABBIT_PASSWORD}@{RABBIT_URL}'
-    redis_url = f'redis://{REDIS_URL}'
-    celery = Celery('tasks', broker=broker_url, backend=redis_url,)
-
-    def __init__(self):
-        assert self.TG_API_TOKEN, 'TG_API_TOKEN IS REQUIRED'
-        self.bot = Bot(token=self.TG_API_TOKEN)
-        self.dp = Dispatcher(self.bot)
-        self.celery.conf.timezone = 'Europe/Moscow'
-
-    def get_apps(self) -> Iterable[AppTG]:
-        for i in self.APPS_DIR.iterdir():
-            if i.is_dir() and i.joinpath('app.py').exists():
-                yield AppTG(i)
+root_dir = Path(__file__).absolute().parent
+app_dir = root_dir.joinpath('apps')
 
 
-config = Config()
+class RedisConfigMixin(BaseSettings):
+    redis_host: str = 'localhost'
+    redis_port: int = 6379
+    redis_user: Optional[str] = None
+    redis_password: Optional[str] = None
+
+    redis_url: Optional[RedisDsn] = None
+
+    @field_validator('redis_url', mode='after')
+    @classmethod
+    def make_redis_url(cls, v, info: ValidationInfo):
+        if not v:
+            host, port = info.data['redis_host'], info.data['redis_port']
+            user, password = info.data['redis_user'], info.data['redis_password']
+            auth = ''
+            if user and password:
+                auth = f'{user}:{password}@'
+            return f'redis://{auth}{host}:{port}'
+        return v
+
+    @model_validator(mode='before')
+    @classmethod
+    def check_auth(cls, v):
+        redis_user, redis_password = v.get('redis_user'), v.get('redis_password')
+        assert not xor(redis_user is None, redis_password is None), 'provide redis auth at full, or not at all'
+        return v
+
+
+class Settings(RedisConfigMixin):
+    model_config = SettingsConfigDict(
+        env_file=root_dir.joinpath('.env'),
+        env_file_encoding='utf-8',
+        extra='ignore'
+    )
+    celery_redis_db: int = 0
+
+    bot_token: str = Field(alias='tg_api_token')
+
+    @computed_field(repr=True)
+    @property
+    def celery_broker_url(self) -> str:
+        return f'{self.redis_url}/{self.celery_redis_db}'
+
+
+settings = Settings()
+
+
+def get_apps() -> Iterator[AppTG]:
+    for i in app_dir.iterdir():
+        if i.is_dir() and i.joinpath('app.py').exists():
+            yield AppTG(i)
+
