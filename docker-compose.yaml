@@ -30,8 +30,6 @@ services:
     depends_on:
       - redis
       - celery_worker
-    links:
-      - rabbitmq
     environment:
       - BROKER_URL=redis://redis/$celery_redis_db
       - RESULT_BACKEND=redis://redis/$celery_redis_db
@@ -41,20 +39,6 @@ services:
     command: celery -A celery_app beat
     restart: on-failure
 
-  flower:
-    build: .
-    env_file: .env
-    volumes:
-      - ./:/app/
-    working_dir: /app
-    command: celery -A celery_app flower
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/$celery_redis_db
-      - CELERY_RESULT_BACKEND=redis://redis:6379/$celery_redis_db
-    #    ports:
-    #      - "5555:5555"
-    depends_on:
-      - redis
 
   tgbot:
     build: .

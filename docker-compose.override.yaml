@@ -1,0 +1,15 @@
+services:
+  flower:
+    build: .
+    env_file: .env
+    volumes:
+      - ./:/app/
+    working_dir: /app
+    command: celery -A celery_app flower
+    environment:
+      - CELERY_BROKER_URL=redis://redis/$celery_redis_db
+      - CELERY_RESULT_BACKEND=redis://redis/$celery_redis_db
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
