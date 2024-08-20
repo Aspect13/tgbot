@@ -46,6 +46,9 @@ class Driver(metaclass=Singleton):
             chrome_options.add_argument("--log-level=3")
             chrome_options.add_argument("--silent")
 
+        if settings.custom_ua:
+            chrome_options.add_argument(f'user-agent={settings.custom_ua}')
+
         if settings.mute_audio:
             chrome_options.add_argument('--mute-audio')
         return chrome_options

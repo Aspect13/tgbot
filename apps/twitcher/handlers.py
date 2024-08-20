@@ -4,7 +4,8 @@ from aiogram import types, Dispatcher, Router
 from aiogram.filters import Command
 from aiogram.types import Message
 
-from .commands import cmd_login, cmd_verification_code, cmd_save_cookies, cmd_driver, cmd_watch
+from .commands import cmd_login, cmd_verification_code, cmd_save_cookies, cmd_driver, cmd_watch, \
+    cmd_bypass_mature_warning
 from .browser import TwitchDriver
 from .settings import settings
 
@@ -60,3 +61,8 @@ def init(dp: Router | Dispatcher) -> None:
         TwitchDriver(TMP_USER_ID).get(url)
 
         await message.answer(f"Now watching: {url}")
+
+    @dp.message(Command(cmd_bypass_mature_warning))
+    async def handle_bypass_warning(message: Message):
+        TwitchDriver(TMP_USER_ID).bypass_mature_warning()
+        await message.answer('mature warning handled')

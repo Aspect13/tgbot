@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from config import root_dir
@@ -14,6 +16,7 @@ class BrowserSettings(BaseSettings):
     debugger: bool = False
     optimizations: bool = True
     mute_audio: bool = True
+    custom_ua: Optional[str] = None
 
 
 settings = BrowserSettings()

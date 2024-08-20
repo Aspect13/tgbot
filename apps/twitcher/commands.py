@@ -16,3 +16,6 @@ register_command(cmd_save_cookies, group='twitcher')
 
 cmd_watch = BotCommand(command="watch", description="go to twitch channel")
 register_command(cmd_watch, group='twitcher')
+
+cmd_bypass_mature_warning = BotCommand(command="mature_warning", description="bypass twitch warning")
+register_command(cmd_bypass_mature_warning, group='twitcher')
