@@ -25,9 +25,9 @@ def init(dp: Router | Dispatcher) -> None:
         driver: ChromiumDriver = Driver()
         png = driver.get_screenshot_as_png()
 
-        file = BytesIO()
-        file.write(png)
-        file.seek(0)
+        # file = BytesIO()
+        # file.write(png)
+        # file.seek(0)
 
         current_url = driver.current_url.rsplit('/', 1)[-1]
         timestamp = datetime.now(timezone.utc)
