@@ -9,7 +9,7 @@ from utils import Singleton
 
 class Driver(metaclass=Singleton):
     def __getattr__(self, name: str):
-        return getattr(self.driver, name)
+        return getattr(self._driver, name)
 
     @property
     def chrome_options(self):
@@ -35,7 +35,9 @@ class Driver(metaclass=Singleton):
 
     def quit(self) -> None:
         self._driver.quit()
+        logging.info('Driver quit')
         self.__class__.purge()
+        logging.info('Driver singleton purged')
 
     def __del__(self):
         self.quit()
