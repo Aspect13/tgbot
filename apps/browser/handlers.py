@@ -15,10 +15,10 @@ def init(dp: Router | Dispatcher) -> None:
     @dp.message(Command(cmd_close))
     async def handle_close(message: Message):
         try:
-            Driver().close()
+            Driver().quit()
         except Exception as e:
             logging.warning(e)
-        await message.answer('Driver closed')
+        await message.answer('Driver quit')
 
     @dp.message(Command(cmd_screenshot))
     async def handle_screenshot(message: Message):

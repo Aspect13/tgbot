@@ -2,8 +2,9 @@ import pickle
 
 from aiogram import types, Dispatcher, Router
 from aiogram.filters import Command
+from aiogram.types import Message
 
-from .commands import cmd_login, cmd_verification_code, cmd_save_cookies, cmd_driver
+from .commands import cmd_login, cmd_verification_code, cmd_save_cookies, cmd_driver, cmd_watch
 from .browser import TwitchDriver
 from .settings import settings
 
@@ -14,7 +15,9 @@ def init(dp: Router | Dispatcher) -> None:
     @dp.message(Command(cmd_driver))
     async def handle_init_driver(message: types.Message):
         await message.answer('Initializing driver...')
-        TwitchDriver(TMP_USER_ID)
+        driver = TwitchDriver(TMP_USER_ID)
+        driver.load_cookies()
+        driver.get('https://www.twitch.tv/')
         await message.answer(f'Driver init done')
 
     @dp.message(Command(cmd_login))
@@ -46,3 +49,14 @@ def init(dp: Router | Dispatcher) -> None:
             await message.answer('cookies saved')
         else:
             await message.answer('no username provided')
+
+    @dp.message(Command(cmd_watch))
+    async def handle_watch(message: Message):
+        try:
+            channel = message.text.split()[1].strip()
+        except IndexError:
+            return await message.answer(f'Specify channel')
+        url = f'https://www.twitch.tv/{channel}'
+        TwitchDriver(TMP_USER_ID).get(url)
+
+        await message.answer(f"Now watching: {url}")

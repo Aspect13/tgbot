@@ -22,10 +22,8 @@ class TwitchDriver(metaclass=Singleton):
         # if self.__class__._instance = weakref.proxy(self)
         logging.warning('Twitcher DRIVER INIT')
         self.user_id = user_id
-
         self.driver = Driver()
         self.load_cookies()
-        self.driver.get('https://www.twitch.tv/')
 
     def load_cookies(self):
         try:

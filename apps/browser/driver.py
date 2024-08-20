@@ -8,8 +8,17 @@ from utils import Singleton
 
 
 class Driver(metaclass=Singleton):
+    _driver = None
+
     def __getattr__(self, name: str):
-        return getattr(self._driver, name)
+        return getattr(self.driver, name)
+
+    @property
+    def driver(self) -> Chrome:
+        if self._driver is None:
+            logging.info('Driver init')
+            self._driver = Chrome(options=self.chrome_options)
+        return self._driver
 
     @property
     def chrome_options(self):
@@ -29,15 +38,15 @@ class Driver(metaclass=Singleton):
             chrome_options.add_argument('--mute-audio')
         return chrome_options
 
-    def __init__(self, *args, **kwargs):
-        logging.info('Driver init')
-        self._driver = Chrome(options=self.chrome_options)
+    # def __init__(self, *args, **kwargs):
+    #     logging.info('Driver init')
+    #     self._driver = Chrome(options=self.chrome_options)
 
     def quit(self) -> None:
-        self._driver.quit()
-        logging.info('Driver quit')
-        self.__class__.purge()
-        logging.info('Driver singleton purged')
+        if self._driver is not None:
+            self._driver.quit()
+            logging.info('Driver quit')
+            self._driver = None
 
     def __del__(self):
         self.quit()
